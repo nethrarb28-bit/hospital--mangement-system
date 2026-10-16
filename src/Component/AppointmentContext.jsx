@@ -1,11 +1,14 @@
+
 import React, { createContext, useContext } from 'react';
-import { useDoctors } from '../hooks/useDoctors';
-import { useAppointments } from '../hooks/useAppointments';
+import { useDoctors } from './useDoctors';
+import { useAppointments } from './useAppointments';
 export const AppointmentContext = createContext();
+
 export const AppointmentProvider = ({ children }) => {
   const doctorHook = useDoctors();
   const appointmentHook = useAppointments();
-return (
+
+  return (
     <AppointmentContext.Provider
       value={{
         ...doctorHook,
@@ -16,6 +19,7 @@ return (
     </AppointmentContext.Provider>
   );
 };
+
 export const useAppointmentContext = () => {
   const context = useContext(AppointmentContext);
   if (!context) {

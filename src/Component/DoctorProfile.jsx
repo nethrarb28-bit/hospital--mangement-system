@@ -1,88 +1,98 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAppointmentContext } from './AppointmentContext';
 
 export default function DoctorProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { doctors } = useAppointmentContext();
 
-  const doctor = doctors.find((doc) => doc.id === parseInt(id, 10));
+  const [doctor, setDoctor] = useState(null);
+  const [slots, setSlots] = useState([]);
+  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedSlot, setSelectedSlot] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const handleBookNow = () => {
-    // Navigate to login page first before booking
-    navigate('/login', { state: { doctorId: doctor.id } });
-  };
+  // d) Fetch individual doctor details dynamically & c) Retrieve available slots via async API call
+  useEffect(() => {
+    const fetchDoctorDetails = async () => {
+      try {
+        setLoading(true);
+        // Fetch specific doctor info
+        const docResponse = await fetch(`https://jsonplaceholder.typicode.com/users/${id}`);
+        if (!docResponse.ok) throw new Error('Could not fetch doctor profile.');
+        const docData = await docResponse.json();
 
-  if (!doctor) {
-    return (
-      <div style={{ padding: '20px', textAlign: 'center' }}>
-        <h3>Doctor Not Found</h3>
-        <button
-          onClick={() => navigate('/doctors')}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#008080',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-          }}
-        >
-          Back to Doctors List
-        </button>
-      </div>
-    );
-  }
+        setDoctor({
+          id: docData.id,
+          name: `Dr. ${docData.name}`,
+          specialty: id % 2 === 0 ? 'Cardiologist' : 'Dermatologist',
+          email: docData.email,
+          phone: docData.phone,
+        });
+
+        // Mocking API fetch for available dates and time slots (c)
+        setSlots(['09:00 AM', '10:30 AM', '02:00 PM', '04:00 PM']);
+        setSelectedDate(new Date().toISOString().split('T')[0]);
+        
+        setError(null);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDoctorDetails();
+  }, [id]);
+
+  if (loading) return <div style={{ textAlign: 'center', padding: '40px' }}>Loading doctor profile...</div>;
+  if (error) return <div style={{ textAlign: 'center', padding: '40px', color: 'red' }}>Error: {error}</div>;
 
   return (
-    <div
-      style={{
-        padding: '20px',
-        maxWidth: '600px',
-        margin: '0 auto',
-        backgroundColor: '#fff',
-        borderRadius: '8px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-      }}
-    >
-      <button
-        onClick={() => navigate('/doctors')}
-        style={{
-          marginBottom: '15px',
-          padding: '6px 12px',
-          border: 'none',
-          backgroundColor: '#f0f0f0',
-          borderRadius: '4px',
-          cursor: 'pointer',
-        }}
-      >
-        ← Back to Doctors
-      </button>
+    <div style={{ maxWidth: '600px', margin: '40px auto', padding: '25px', backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #ddd' }}>
+      <h2 style={{ color: '#008080' }}>{doctor.name}</h2>
+      <p style={{ fontWeight: 'bold', color: '#555' }}>Specialty: {doctor.specialty}</p>
+      <p>Email: {doctor.email}</p>
+      <p>Phone: {doctor.phone}</p>
 
-      <h2 style={{ color: '#008080', margin: '0 0 10px 0' }}>{doctor.name}</h2>
-      <p><strong>Specialty:</strong> {doctor.specialty}</p>
-      <p><strong>Qualification:</strong> {doctor.qualification}</p>
-      <p><strong>Experience:</strong> {doctor.experience} years</p>
-      <p><strong>Rating:</strong> {doctor.rating} ★</p>
-      <p><strong>Consultation Fee:</strong> ${doctor.fee}</p>
+      <hr style={{ margin: '20px 0', border: '0', borderTop: '1px solid #eee' }} />
+
+      <h3>Available Time Slots</h3>
+      <div style={{ display: 'flex', gap: '10px', margin: '15px 0', flexWrap: 'wrap' }}>
+        {slots.map((slot, index) => (
+          <button
+            key={index}
+            onClick={() => setSelectedSlot(slot)}
+            style={{
+              padding: '10px 15px',
+              backgroundColor: selectedSlot === slot ? '#008080' : '#f0f0f0',
+              color: selectedSlot === slot ? '#fff' : '#333',
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+              cursor: 'pointer',
+            }}
+          >
+            {slot}
+          </button>
+        ))}
+      </div>
 
       <button
-        onClick={handleBookNow}
+        onClick={() => navigate('/book-appointment', { state: { doctorId: doctor.id, doctorName: doctor.name, slot: selectedSlot, date: selectedDate } })}
+        disabled={!selectedSlot}
         style={{
           width: '100%',
           padding: '12px',
-          backgroundColor: '#008080',
-          color: '#ffffff',
+          marginTop: '20px',
+          backgroundColor: selectedSlot ? '#008080' : '#ccc',
+          color: '#fff',
           border: 'none',
-          borderRadius: '6px',
-          fontSize: '1rem',
+          borderRadius: '4px',
           fontWeight: 'bold',
-          cursor: 'pointer',
-          marginTop: '15px',
+          cursor: selectedSlot ? 'pointer' : 'not-allowed',
         }}
       >
-        Proceed to Login & Book
+        Proceed to Book Appointment
       </button>
     </div>
   );

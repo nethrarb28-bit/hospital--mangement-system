@@ -1,219 +1,81 @@
-import React, { useState } from "react";
-import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation, Link } from "react-router-dom";
-import { AppointmentProvider, useAppointmentContext } from "./Component/AppointmentContext";
-import Navbar from "./Component/NavBar";
-import Home from "./Component/Home";
-import DoctorList from "./Component/DoctorList";
-import DoctorProfile from "./Component/DoctorProfile";
-import AppointmentBooking from "./Component/AppointmentBooking";
-import AppointmentHistory from "./Component/AppointmentHistory";
-import PatientProfile from "./Component/PatientProfile";
-import Footer from "./Component/Footer"; 
-function Register() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const targetDoctorId = location.state?.doctorId;
-  const [formData, setFormData] = useState({ username: "", email: "", password: "" });
-  const [error, setError] = useState("");
-  const handleRegister = (e) => {
-    e.preventDefault();
-    if (!formData.username || !formData.email || !formData.password) {
-      setError("Please fill in all fields.");
-      return;
-    }
+import React, { lazy, Suspense } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { logout } from './redux/appointmentSlice';
 
-    localStorage.setItem("mediPulse_user", JSON.stringify(formData));
-    alert("Account created successfully! Please log in.");
-    navigate("/login", { state: { doctorId: targetDoctorId } });
-  };
+// Lazy loaded components for Experiment 2 (Performance & Code Splitting)
+const DoctorList = lazy(() => import('./Component/DoctorList').then(module => ({ default: module.DoctorList })));
+const AppointmentBooking = lazy(() => import('./Component/AppointmentBooking').then(module => ({ default: module.AppointmentBooking })));
+const AppointmentManager = lazy(() => import('./Component/AppointmentManager').then(module => ({ default: module.AppointmentManager })));
+const PatientDashboard = lazy(() => import('./Component/PatientDashboard').then(module => ({ default: module.PatientDashboard })));
+const Login = lazy(() => import('./Component/Login').then(module => ({ default: module.Login })));
 
+function Home() {
   return (
-    <div style={{ maxWidth: "400px", margin: "40px auto", padding: "20px", border: "1px solid #ccc", borderRadius: "8px", backgroundColor: "#fff" }}>
-      <h2>Create Patient Account</h2>
-      {error && <p style={{ color: "red", fontSize: "0.85rem" }}>{error}</p>}
-      <form onSubmit={handleRegister}>
-        <input
-          type="text"
-          placeholder="Username"
-          value={formData.username}
-          onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-          style={{ width: "100%", padding: "8px", marginBottom: "10px", borderRadius: "4px", border: "1px solid #ccc" }}
-        />
-        <input
-          type="email"
-          placeholder="Email Address"
-          value={formData.email}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          style={{ width: "100%", padding: "8px", marginBottom: "10px", borderRadius: "4px", border: "1px solid #ccc" }}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={formData.password}
-          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-          style={{ width: "100%", padding: "8px", marginBottom: "15px", borderRadius: "4px", border: "1px solid #ccc" }}
-        />
-        <button type="submit" style={{ width: "100%", padding: "10px", backgroundColor: "#008080", color: "#fff", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "bold" }}>
-          Register Account
-        </button>
-      </form>
-      <p style={{ fontSize: "0.85rem", marginTop: "15px", textAlign: "center" }}>
-        Already have an account? <Link to="/login" state={{ doctorId: targetDoctorId }} style={{ color: "#008080" }}>Login here</Link>
-      </p>
+    <div style={{ maxWidth: '800px', margin: '60px auto', padding: '40px', background: '#fff', borderRadius: '8px', textAlign: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+      <h1 style={{ color: '#008080', fontSize: '2.2rem', marginBottom: '15px' }}>Welcome to MediPulse Speciality Hospital</h1>
+      <p style={{ color: '#666', fontSize: '1.1rem', marginBottom: '30px' }}>Schedule appointments with top specialist doctors quickly and securely.</p>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '15px' }}>
+        <Link to="/doctors" style={{ padding: '12px 24px', backgroundColor: '#008080', color: '#fff', textDecoration: 'none', borderRadius: '4px', fontWeight: 'bold' }}>Find a Doctor</Link>
+        <Link to="/dashboard" style={{ padding: '12px 24px', border: '1px solid #008080', color: '#008080', textDecoration: 'none', borderRadius: '4px', fontWeight: 'bold' }}>Patient Portal</Link>
+      </div>
     </div>
   );
 }
 
-// --- LOGIN COMPONENT ---
-function Login() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const targetDoctorId = location.state?.doctorId;
-
-  const [credentials, setCredentials] = useState({ username: "", password: "" });
-  const [error, setError] = useState("");
-
-  const handleLogin = (e) => {
-    e.preventDefault();
-    const savedUser = JSON.parse(localStorage.getItem("mediPulse_user"));
-
-    if (!savedUser) {
-      setError("No account found. Please register first!");
-      return;
-    }
-
-    if (savedUser.username === credentials.username && savedUser.password === credentials.password) {
-      localStorage.setItem("mediPulse_isLoggedIn", "true");
-      alert("Login successful!");
-
-      if (targetDoctorId) {
-        navigate("/book-appointment", { state: { doctorId: targetDoctorId } });
-      } else {
-        navigate("/patient");
-      }
-    } else {
-      setError("Invalid username or password.");
-    }
-  };
-
-  return (
-    <div style={{ maxWidth: "400px", margin: "40px auto", padding: "20px", border: "1px solid #ccc", borderRadius: "8px", backgroundColor: "#fff" }}>
-      <h2>Patient Login</h2>
-      {targetDoctorId && (
-        <p style={{ backgroundColor: "#e6f2f2", color: "#008080", padding: "8px", borderRadius: "4px", fontSize: "0.85rem" }}>
-          Please log in to proceed with your doctor appointment booking.
-        </p>
-      )}
-      {error && <p style={{ color: "red", fontSize: "0.85rem" }}>{error}</p>}
-      <form onSubmit={handleLogin}>
-        <input
-          type="text"
-          placeholder="Username"
-          value={credentials.username}
-          onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
-          style={{ width: "100%", padding: "8px", marginBottom: "10px", borderRadius: "4px", border: "1px solid #ccc" }}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={credentials.password}
-          onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
-          style={{ width: "100%", padding: "8px", marginBottom: "15px", borderRadius: "4px", border: "1px solid #ccc" }}
-        />
-        <button type="submit" style={{ width: "100%", padding: "10px", backgroundColor: "#008080", color: "#fff", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "bold" }}>
-          Login to Continue
-        </button>
-      </form>
-      <p style={{ fontSize: "0.85rem", marginTop: "15px", textAlign: "center" }}>
-        Don't have an account? <Link to="/register" state={{ doctorId: targetDoctorId }} style={{ color: "#008080" }}>Create one here</Link>
-      </p>
-    </div>
-  );
-}
-
-// --- NESTED DASHBOARD TABS ---
-function PatientAppointmentsTab() {
-  const { appointments = [] } = useAppointmentContext();
-  return (
-    <div>
-      <h3>All Patient Appointments</h3>
-      <p>Total Records: {appointments.length}</p>
-    </div>
-  );
-}
-
-function PatientUpcomingTab() {
-  const { appointments = [] } = useAppointmentContext();
-  const upcoming = appointments.filter((a) => a.status === "Confirmed");
-  return (
-    <div>
-      <h3>Upcoming Appointments</h3>
-      {upcoming.length === 0 ? (
-        <p>No upcoming appointments.</p>
-      ) : (
-        <ul>
-          {upcoming.map((u) => (
-            <li key={u.id}>{u.doctorName} on {u.date} at {u.slot}</li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
-
-function PatientHistoryTab() {
-  const { appointments = [] } = useAppointmentContext();
-  return (
-    <div>
-      <h3>Appointment History</h3>
-      {appointments.map((a) => (
-        <p key={a.id}>{a.date} - {a.doctorName} ({a.status})</p>
-      ))}
-    </div>
-  );
-}
-
-function PatientOverviewTab() {
-  const user = JSON.parse(localStorage.getItem("mediPulse_user")) || { username: "Guest", email: "N/A" };
-  return (
-    <div>
-      <h3>Patient Profile Overview</h3>
-      <p><strong>Username:</strong> {user.username}</p>
-      <p><strong>Email:</strong> {user.email}</p>
-    </div>
-  );
+// Protected Route Wrapper
+function ProtectedRoute({ children }) {
+  const { isAuthenticated } = useSelector((state) => state.appointments);
+  return isAuthenticated ? children : <Navigate to="/login" replace />;
 }
 
 export default function App() {
+  const dispatch = useDispatch();
+  const { isAuthenticated } = useSelector((state) => state.appointments);
+
   return (
-    <AppointmentProvider>
-      <BrowserRouter>
-        <div style={{ fontFamily: "Arial, sans-serif", backgroundColor: "#f4f6f8", minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-          <Navbar />
-          <div style={{ maxWidth: "1000px", margin: "0 auto", width: "100%", flex: 1 }}>
+    <Router>
+      <div style={{ fontFamily: 'Arial, sans-serif', background: '#f4f7f6', minHeight: '100vh', margin: '0', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        {/* Navigation Bar */}
+        <nav style={{ background: '#fff', padding: '15px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+          <h2 style={{ margin: 0, color: '#008080', fontSize: '1.5rem' }}>MediPulse Hospital</h2>
+          <div style={{ display: 'flex', gap: '25px', alignItems: 'center' }}>
+            <Link to="/" style={{ color: '#333', textDecoration: 'none', fontWeight: '500' }}>Home</Link>
+            <Link to="/doctors" style={{ color: '#333', textDecoration: 'none', fontWeight: '500' }}>Doctors</Link>
+            <Link to="/appointments" style={{ color: '#333', textDecoration: 'none', fontWeight: '500' }}>Appointments</Link>
+            <Link to="/dashboard" style={{ color: '#333', textDecoration: 'none', fontWeight: '500' }}>Patient Dashboard</Link>
+            {isAuthenticated ? (
+              <button 
+                onClick={() => dispatch(logout())} 
+                style={{ padding: '6px 12px', background: '#d9534f', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                Logout
+              </button>
+            ) : (
+              <Link to="/login" style={{ color: '#333', textDecoration: 'none', fontWeight: '500' }}>Login</Link>
+            )}
+          </div>
+        </nav>
+
+        {/* Routes Setup wrapped in Suspense for Code Splitting */}
+        <div style={{ flex: 1, padding: '20px' }}>
+          <Suspense fallback={<div style={{ textAlign: 'center', padding: '50px', color: '#008080', fontSize: '1.2rem', fontWeight: 'bold' }}>Loading module...</div>}>
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/doctors" element={<DoctorList />} />
-              <Route path="/doctor/:id" element={<DoctorProfile />} />
-              <Route path="/appointments" element={<AppointmentHistory />} />
-              <Route path="/book-appointment" element={<AppointmentBooking />} />
-              <Route path="/appointment/:id" element={<AppointmentHistory />} />
+              <Route path="/book/:doctorId" element={<ProtectedRoute><AppointmentBooking /></ProtectedRoute>} />
+              <Route path="/appointments" element={<ProtectedRoute><AppointmentManager /></ProtectedRoute>} />
+              <Route path="/dashboard" element={<ProtectedRoute><PatientDashboard /></ProtectedRoute>} />
               <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-
-              <Route path="/patient" element={<PatientProfile />}>
-                <Route index element={<Navigate to="appointments" replace />} />
-                <Route path="appointments" element={<PatientAppointmentsTab />} />
-                <Route path="upcoming" element={<PatientUpcomingTab />} />
-                <Route path="history" element={<PatientHistoryTab />} />
-                <Route path="profile" element={<PatientOverviewTab />} />
-              </Route>
             </Routes>
-          </div>
-          {/* 2. Render Footer component here */}
-          <Footer />
+          </Suspense>
         </div>
-      </BrowserRouter>
-    </AppointmentProvider>
+
+        {/* Footer */}
+        <footer style={{ background: '#008080', color: '#fff', textAlign: 'center', padding: '15px', fontSize: '0.9rem' }}>
+          © 2026 MediPulse Hospital. All rights reserved.
+        </footer>
+      </div>
+    </Router>
   );
 }
