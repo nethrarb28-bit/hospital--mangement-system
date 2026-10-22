@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
+import { Routes, Route, Link, Navigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from './redux/appointmentSlice';
 
@@ -34,48 +34,46 @@ export default function App() {
   const { isAuthenticated } = useSelector((state) => state.appointments);
 
   return (
-    <Router>
-      <div style={{ fontFamily: 'Arial, sans-serif', background: '#f4f7f6', minHeight: '100vh', margin: '0', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-        {/* Navigation Bar */}
-        <nav style={{ background: '#fff', padding: '15px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-          <h2 style={{ margin: 0, color: '#008080', fontSize: '1.5rem' }}>MediPulse Hospital</h2>
-          <div style={{ display: 'flex', gap: '25px', alignItems: 'center' }}>
-            <Link to="/" style={{ color: '#333', textDecoration: 'none', fontWeight: '500' }}>Home</Link>
-            <Link to="/doctors" style={{ color: '#333', textDecoration: 'none', fontWeight: '500' }}>Doctors</Link>
-            <Link to="/appointments" style={{ color: '#333', textDecoration: 'none', fontWeight: '500' }}>Appointments</Link>
-            <Link to="/dashboard" style={{ color: '#333', textDecoration: 'none', fontWeight: '500' }}>Patient Dashboard</Link>
-            {isAuthenticated ? (
-              <button 
-                onClick={() => dispatch(logout())} 
-                style={{ padding: '6px 12px', background: '#d9534f', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
-              >
-                Logout
-              </button>
-            ) : (
-              <Link to="/login" style={{ color: '#333', textDecoration: 'none', fontWeight: '500' }}>Login</Link>
-            )}
-          </div>
-        </nav>
-
-        {/* Routes Setup wrapped in Suspense for Code Splitting */}
-        <div style={{ flex: 1, padding: '20px' }}>
-          <Suspense fallback={<div style={{ textAlign: 'center', padding: '50px', color: '#008080', fontSize: '1.2rem', fontWeight: 'bold' }}>Loading module...</div>}>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/doctors" element={<DoctorList />} />
-              <Route path="/book/:doctorId" element={<ProtectedRoute><AppointmentBooking /></ProtectedRoute>} />
-              <Route path="/appointments" element={<ProtectedRoute><AppointmentManager /></ProtectedRoute>} />
-              <Route path="/dashboard" element={<ProtectedRoute><PatientDashboard /></ProtectedRoute>} />
-              <Route path="/login" element={<Login />} />
-            </Routes>
-          </Suspense>
+    <div style={{ fontFamily: 'Arial, sans-serif', background: '#f4f7f6', minHeight: '100vh', margin: '0', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+      {/* Navigation Bar */}
+      <nav style={{ background: '#fff', padding: '15px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+        <h2 style={{ margin: 0, color: '#008080', fontSize: '1.5rem' }}>MediPulse Hospital</h2>
+        <div style={{ display: 'flex', gap: '25px', alignItems: 'center' }}>
+          <Link to="/" style={{ color: '#333', textDecoration: 'none', fontWeight: '500' }}>Home</Link>
+          <Link to="/doctors" style={{ color: '#333', textDecoration: 'none', fontWeight: '500' }}>Doctors</Link>
+          <Link to="/appointments" style={{ color: '#333', textDecoration: 'none', fontWeight: '500' }}>Appointments</Link>
+          <Link to="/dashboard" style={{ color: '#333', textDecoration: 'none', fontWeight: '500' }}>Patient Dashboard</Link>
+          {isAuthenticated ? (
+            <button 
+              onClick={() => dispatch(logout())} 
+              style={{ padding: '6px 12px', background: '#d9534f', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+            >
+              Logout
+            </button>
+          ) : (
+            <Link to="/login" style={{ color: '#333', textDecoration: 'none', fontWeight: '500' }}>Login</Link>
+          )}
         </div>
+      </nav>
 
-        {/* Footer */}
-        <footer style={{ background: '#008080', color: '#fff', textAlign: 'center', padding: '15px', fontSize: '0.9rem' }}>
-          © 2026 MediPulse Hospital. All rights reserved.
-        </footer>
+      {/* Routes Setup wrapped in Suspense for Code Splitting */}
+      <div style={{ flex: 1, padding: '20px' }}>
+        <Suspense fallback={<div style={{ textAlign: 'center', padding: '50px', color: '#008080', fontSize: '1.2rem', fontWeight: 'bold' }}>Loading module...</div>}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/doctors" element={<DoctorList />} />
+            <Route path="/book/:doctorId" element={<ProtectedRoute><AppointmentBooking /></ProtectedRoute>} />
+            <Route path="/appointments" element={<ProtectedRoute><AppointmentManager /></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute><PatientDashboard /></ProtectedRoute>} />
+            <Route path="/login" element={<Login />} />
+          </Routes>
+        </Suspense>
       </div>
-    </Router>
+
+      {/* Footer */}
+      <footer style={{ background: '#008080', color: '#fff', textAlign: 'center', padding: '15px', fontSize: '0.9rem' }}>
+        © 2026 MediPulse Hospital. All rights reserved.
+      </footer>
+    </div>
   );
 }

@@ -30,19 +30,5 @@ export default defineConfig({
       }
     })
   ],
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          // Separate node_modules vendor libraries into their own cached chunk
-          if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('redux') || id.includes('router')) {
-              return 'vendor-react';
-            }
-            return 'vendor';
-          }
-        }
-      }
-    }
-  }
+  base: '/hospital--mangement-system/',
 });
