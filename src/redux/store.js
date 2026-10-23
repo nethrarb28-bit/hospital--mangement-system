@@ -1,11 +1,8 @@
 import { configureStore } from '@reduxjs/toolkit';
-import appointmentReducer from './appointmentSlice'; // <-- Fix the filename here
-import { appointmentLoggerMiddleware } from './middleware';
+import appointmentReducer from './appointmentSlice';
 
 export const store = configureStore({
   reducer: {
     appointments: appointmentReducer,
   },
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(appointmentLoggerMiddleware),
 });

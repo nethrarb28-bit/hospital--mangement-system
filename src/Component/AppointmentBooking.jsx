@@ -1,113 +1,98 @@
 import React, { useState } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { addAppointment } from '../redux/appointmentSlice';
 
-export default function AppointmentBooking({ doctor = { name: 'Dr. Leanne Graham' }, onBookAppointment }) {
+export function AppointmentBooking() {
+  const { doctorId } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const dispatch = useDispatch();
+
+  // Retrieve selected date passed from previous step (or default to today)
+  const selectedDate = location.state?.selectedDate || new Date().toISOString().split('T')[0];
+
   const [patientName, setPatientName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [date, setDate] = useState('');
-  const [slot, setSlot] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [timeSlot, setTimeSlot] = useState('09:00 AM');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (onBookAppointment) {
-      onBookAppointment({ patientName, email, phone, date, slot });
-    } else {
-      alert(`Appointment confirmed with ${doctor.name} for ${patientName} on ${date} at ${slot}!`);
+    if (!patientName || !phoneNumber) {
+      alert('Please fill in all details.');
+      return;
     }
+
+    const newAppointment = {
+      id: Date.now(),
+      doctorId: doctorId || '1',
+      patientName,
+      phoneNumber,
+      date: selectedDate,
+      timeSlot,
+      status: 'Confirmed'
+    };
+
+    dispatch(addAppointment(newAppointment));
+    alert('Appointment Booked Successfully!');
+    navigate('/appointments');
   };
 
   return (
-    <form onSubmit={handleSubmit} aria-label="Appointment Booking Form" style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxWidth: '400px' }}>
-      <h2>Book Appointment with {doctor.name}</h2>
+    <div style={{ maxWidth: '500px', margin: '40px auto', padding: '30px', background: '#ffffff', borderRadius: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', color: '#333' }}>
+      <h2 style={{ color: '#008080', marginTop: 0, textAlign: 'center' }}>Book Appointment Slot</h2>
       
-      <div>
-        <label htmlFor="patientName" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Patient Name</label>
-        <input 
-          id="patientName"
-          type="text" 
-          value={patientName}
-          onChange={(e) => setPatientName(e.target.value)}
-          required
-          aria-required="true"
-          placeholder="Enter full name"
-          style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-        />
+      <div style={{ background: '#e6f2f2', padding: '12px', borderRadius: '6px', marginBottom: '20px', fontSize: '0.95rem' }}>
+        <p style={{ margin: '4px 0' }}><strong>Doctor ID:</strong> {doctorId || 'Selected Specialist'}</p>
+        <p style={{ margin: '4px 0' }}><strong>Selected Date:</strong> {selectedDate}</p>
       </div>
 
-      <div>
-        <label htmlFor="emailAddress" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Email Address</label>
-        <input 
-          id="emailAddress"
-          type="email" 
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          aria-required="true"
-          placeholder="name@example.com"
-          style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-        />
-      </div>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+        <div>
+          <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px' }}>Patient Full Name:</label>
+          <input 
+            type="text" 
+            placeholder="Enter your full name" 
+            value={patientName} 
+            onChange={(e) => setPatientName(e.target.value)} 
+            required 
+            style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', boxSizing: 'border-box' }}
+          />
+        </div>
 
-      <div>
-        <label htmlFor="phoneNumber" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Phone Number</label>
-        <input 
-          id="phoneNumber"
-          type="tel" 
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          required
-          aria-required="true"
-          placeholder="10-digit mobile number"
-          style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-        />
-      </div>
+        <div>
+          <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px' }}>Phone Number:</label>
+          <input 
+            type="tel" 
+            placeholder="Enter 10-digit phone number" 
+            value={phoneNumber} 
+            onChange={(e) => setPhoneNumber(e.target.value)} 
+            required 
+            style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', boxSizing: 'border-box' }}
+          />
+        </div>
 
-      <div>
-        <label htmlFor="selectDate" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Select Date</label>
-        <input 
-          id="selectDate"
-          type="date" 
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          required
-          aria-required="true"
-          style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-        />
-      </div>
+        <div>
+          <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px' }}>Select Time Slot:</label>
+          <select 
+            value={timeSlot} 
+            onChange={(e) => setTimeSlot(e.target.value)}
+            style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', boxSizing: 'border-box' }}
+          >
+            <option value="09:00 AM">09:00 AM - 10:00 AM</option>
+            <option value="11:00 AM">11:00 AM - 12:00 PM</option>
+            <option value="02:00 PM">02:00 PM - 03:00 PM</option>
+            <option value="04:00 PM">04:00 PM - 05:00 PM</option>
+          </select>
+        </div>
 
-      <div>
-        <label htmlFor="selectTimeSlot" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Select Time Slot</label>
-        <select 
-          id="selectTimeSlot"
-          value={slot}
-          onChange={(e) => setSlot(e.target.value)}
-          required
-          aria-required="true"
-          style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
+        <button 
+          type="submit" 
+          style={{ marginTop: '10px', padding: '12px', background: '#008080', color: '#fff', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer', fontSize: '1rem' }}
         >
-          <option value="">-- Choose a slot --</option>
-          <option value="09:00 AM">09:00 AM</option>
-          <option value="10:30 AM">10:30 AM</option>
-          <option value="02:00 PM">02:00 PM</option>
-        </select>
-      </div>
-      
-      <button 
-        type="submit" 
-        aria-label="Confirm and Book Appointment"
-        style={{
-          backgroundColor: '#28a745',
-          color: '#fff',
-          border: 'none',
-          padding: '12px',
-          borderRadius: '4px',
-          cursor: 'pointer',
-          fontWeight: 'bold',
-          fontSize: '16px'
-        }}
-      >
-        Confirm & Book Appointment
-      </button>
-    </form>
+          Confirm & Book Slot
+        </button>
+      </form>
+    </div>
   );
 }
